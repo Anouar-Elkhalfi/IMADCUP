@@ -5,13 +5,13 @@ const championnats = [
   { id: 'carousel-16', nbEquipes: 16, prefixe: 'E' }
 ];
 
-// --- Générer le Round Robin brut ---
+// --- Génération du Round Robin brut (sans correction) ---
 function generateRoundRobinBrut(nbEquipes, prefixe) {
   const jours = [];
   const equipes = Array.from({ length: nbEquipes }, (_, i) => i + 1);
 
   if (nbEquipes % 2 !== 0) {
-    equipes.push(null); // Ajouter "bye" si impair
+    equipes.push(null); // Bye si impair
   }
 
   const totalEquipes = equipes.length;
@@ -36,7 +36,6 @@ function generateRoundRobinBrut(nbEquipes, prefixe) {
     }
     jours.push({ type: 'Aller', journee: journee + 1, matchs: matchs });
 
-    // Rotation des équipes sauf la première
     const fixed = currentTeams.shift();
     const moved = currentTeams.pop();
     currentTeams.unshift(fixed);
@@ -46,56 +45,61 @@ function generateRoundRobinBrut(nbEquipes, prefixe) {
   return jours;
 }
 
-// --- Correction pour alterner domicile/extérieur ---
-function equilibrerMatchs(journees) {
-  const homeStreaks = {};
-  const awayStreaks = {};
+// --- Correction complète de l'aller + retour combinés ---
+function equilibrerAllerRetour(journeesAller) {
+  const historique = {};
 
-  journees.forEach(journee => {
-    journee.matchs.forEach(match => {
-      const { home, away } = match;
+  function getLastNStatus(equipe, n) {
+    const hist = historique[equipe] || [];
+    return hist.slice(-n);
+  }
 
-      homeStreaks[home] = homeStreaks[home] || 0;
-      awayStreaks[away] = awayStreaks[away] || 0;
+  // Créer l'aller
+  const allerCorrige = journeesAller.map(journee => ({
+    type: 'Aller',
+    journee: journee.journee,
+    matchs: journee.matchs.map(match => ({ ...match }))
+  }));
 
-      // Si une équipe a déjà 2 matchs à domicile, inverser
-      if (homeStreaks[home] >= 2) {
-        match.home = away;
-        match.away = home;
-        homeStreaks[away] = (homeStreaks[away] || 0) + 1;
-        awayStreaks[home] = (awayStreaks[home] || 0) + 1;
-      }
-      // Si une équipe a déjà 2 matchs à l'extérieur, inverser
-      else if (awayStreaks[away] >= 2) {
-        match.home = away;
-        match.away = home;
-        homeStreaks[away] = (homeStreaks[away] || 0) + 1;
-        awayStreaks[home] = (awayStreaks[home] || 0) + 1;
-      }
-      else {
-        homeStreaks[home]++;
-        awayStreaks[away]++;
-      }
-    });
-  });
-
-  return journees;
-}
-
-// --- Générer ALLER et RETOUR équilibrés ---
-function generateRoundRobin(nbEquipes, prefixe) {
-  const aller = equilibrerMatchs(generateRoundRobinBrut(nbEquipes, prefixe));
-
-  const retour = aller.map(j => ({
+  // Créer le retour inversé
+  const retourCorrige = journeesAller.map(journee => ({
     type: 'Retour',
-    journee: j.journee,
-    matchs: j.matchs.map(m => ({
-      home: m.away,
-      away: m.home
+    journee: journee.journee,
+    matchs: journee.matchs.map(match => ({
+      home: match.away,
+      away: match.home
     }))
   }));
 
-  return [...aller, ...retour];
+  const toutesJournees = [...allerCorrige, ...retourCorrige];
+
+  toutesJournees.forEach(journee => {
+    journee.matchs.forEach(match => {
+      const { home, away } = match;
+
+      const homeStreak = getLastNStatus(home, 2).every(status => status === 'D');
+      const awayStreak = getLastNStatus(away, 2).every(status => status === 'E');
+
+      if (homeStreak || awayStreak) {
+        // Inverser le match si nécessaire
+        match.home = away;
+        match.away = home;
+      }
+
+      // Mise à jour historique
+      historique[match.home] = [...(historique[match.home] || []), 'D'];
+      historique[match.away] = [...(historique[match.away] || []), 'E'];
+    });
+  });
+
+  return toutesJournees;
+}
+
+// --- Générer le calendrier final corrigé ---
+function generateCalendrier(nbEquipes, prefixe) {
+  const journeesAller = generateRoundRobinBrut(nbEquipes, prefixe);
+  const calendrier = equilibrerAllerRetour(journeesAller);
+  return calendrier;
 }
 
 // --- Afficher une journée ---
@@ -135,7 +139,7 @@ championnats.forEach(champ => {
   const prevBtn = container.querySelector('.prev-button');
   const nextBtn = container.querySelector('.next-button');
 
-  const calendrier = generateRoundRobin(champ.nbEquipes, champ.prefixe);
+  const calendrier = generateCalendrier(champ.nbEquipes, champ.prefixe);
 
   let currentIndex = 0;
   afficherJournee(container, calendrier, currentIndex);
