@@ -5,64 +5,56 @@ const championnats = [
   { id: 'carousel-16', nbEquipes: 16, prefixe: 'E' }
 ];
 
-// --- Générer les journées (Aller et Retour) ---
-function generateJournees(nbEquipes, prefixe) {
+// --- Générer les journées Round Robin équilibrées ---
+function generateRoundRobin(nbEquipes, prefixe) {
   const jours = [];
+  const equipes = Array.from({ length: nbEquipes }, (_, i) => i + 1);
 
-  // Aller
-  for (let journee = 1; journee < nbEquipes; journee++) {
-    const matchs = [];
-    for (let i = 1; i <= nbEquipes / 2; i++) {
-      let home = (i + journee - 1) % nbEquipes || nbEquipes;
-      let away = (nbEquipes - i + journee) % nbEquipes || nbEquipes;
-      matchs.push({ home: `${prefixe} ${home}`, away: `${prefixe} ${away}` });
-    }
-    jours.push({ type: 'Aller', journee, matchs });
+  if (nbEquipes % 2 !== 0) {
+    equipes.push(null); // Ajouter "bye" si nombre impair
   }
 
-  // Retour
-  for (let journee = 1; journee < nbEquipes; journee++) {
+  const totalEquipes = equipes.length;
+  const totalJournees = totalEquipes - 1;
+  const half = totalEquipes / 2;
+
+  let currentTeams = equipes.slice();
+
+  for (let journee = 0; journee < totalJournees; journee++) {
     const matchs = [];
-    for (let i = 1; i <= nbEquipes / 2; i++) {
-      let away = (i + journee - 1) % nbEquipes || nbEquipes;
-      let home = (nbEquipes - i + journee) % nbEquipes || nbEquipes;
-      matchs.push({ home: `${prefixe} ${home}`, away: `${prefixe} ${away}` });
+    for (let i = 0; i < half; i++) {
+      const team1 = currentTeams[i];
+      const team2 = currentTeams[totalEquipes - 1 - i];
+
+      if (team1 !== null && team2 !== null) {
+        // Alternance domicile/extérieur par journée
+        if (journee % 2 === 0) {
+          matchs.push({ home: `${prefixe} ${team1}`, away: `${prefixe} ${team2}` });
+        } else {
+          matchs.push({ home: `${prefixe} ${team2}`, away: `${prefixe} ${team1}` });
+        }
+      }
     }
-    jours.push({ type: 'Retour', journee, matchs });
+    jours.push({ type: 'Aller', journee: journee + 1, matchs: matchs });
+
+    // Rotation des équipes (sauf la première)
+    const fixed = currentTeams.shift();
+    const moved = currentTeams.pop();
+    currentTeams.unshift(fixed);
+    currentTeams.splice(1, 0, moved);
   }
 
-  return jours;
+  // Retour (inverser home/away)
+  const retour = jours.map(j => ({
+    type: 'Retour',
+    journee: j.journee,
+    matchs: j.matchs.map(m => ({ home: m.away, away: m.home }))
+  }));
+
+  return [...jours, ...retour];
 }
 
-// --- Générer les phases finales (quarts, demis, finale) ---
-function generatePhasesFinales(prefixe) {
-  return [
-    {
-      phase: 'Quarts de Finale',
-      matchs: [
-        { home: `${prefixe} 1`, away: `${prefixe} 8` },
-        { home: `${prefixe} 2`, away: `${prefixe} 7` },
-        { home: `${prefixe} 3`, away: `${prefixe} 6` },
-        { home: `${prefixe} 4`, away: `${prefixe} 5` }
-      ]
-    },
-    {
-      phase: 'Demi-finales',
-      matchs: [
-        { home: 'Vainqueur Q1', away: 'Vainqueur Q4' },
-        { home: 'Vainqueur Q2', away: 'Vainqueur Q3' }
-      ]
-    },
-    {
-      phase: 'Finale',
-      matchs: [
-        { home: 'Vainqueur D1', away: 'Vainqueur D2' }
-      ]
-    }
-  ];
-}
-
-// --- Fonction pour afficher la journée pour un championnat donné ---
+// --- Afficher une journée ---
 function afficherJournee(container, calendrier, index) {
   const title = container.querySelector('.journee-title');
   const content = container.querySelector('.carousel-content');
@@ -70,11 +62,7 @@ function afficherJournee(container, calendrier, index) {
 
   content.innerHTML = '';
 
-  if (data.type) {
-    title.textContent = `Journée ${data.journee} (${data.type})`;
-  } else if (data.phase) {
-    title.textContent = data.phase;
-  }
+  title.textContent = `Journée ${data.journee} (${data.type})`;
 
   const table = document.createElement('table');
   table.innerHTML = `
@@ -97,16 +85,13 @@ function afficherJournee(container, calendrier, index) {
   content.appendChild(table);
 }
 
-// --- Initialisation pour chaque championnat ---
+// --- Initialisation ---
 championnats.forEach(champ => {
   const container = document.getElementById(champ.id);
   const prevBtn = container.querySelector('.prev-button');
   const nextBtn = container.querySelector('.next-button');
 
-  const calendrier = [
-    ...generateJournees(champ.nbEquipes, champ.prefixe),
-    ...generatePhasesFinales(champ.prefixe)
-  ];
+  const calendrier = generateRoundRobin(champ.nbEquipes, champ.prefixe);
 
   let currentIndex = 0;
   afficherJournee(container, calendrier, currentIndex);
