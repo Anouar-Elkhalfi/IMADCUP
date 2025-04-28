@@ -1,47 +1,88 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f2f6fa;
+  margin: 0;
+  padding: 20px;
+  text-align: center;
 }
 
-h1, h2, h3 {
+h1 {
   color: #2E4053;
-}
-
-.championnat {
   margin-bottom: 50px;
+  font-size: 32px;
 }
 
-.journee {
-  display: none;
+h2 {
+  color: #34495E;
   margin-bottom: 20px;
 }
 
-.bouton {
-  background-color: #3498DB;
-  color: white;
-  padding: 10px;
-  margin: 5px 0;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  border-radius: 5px;
-  font-size: 16px;
+.carousel-section {
+  background: #ffffff;
+  margin: 40px auto;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 900px;
 }
 
-.bouton:hover {
+.carousel-container {
+  margin-top: 20px;
+}
+
+.carousel-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.prev-button,
+.next-button {
+  background-color: #3498DB;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.prev-button:hover,
+.next-button:hover {
   background-color: #2980B9;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+.journee-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #2C3E50;
 }
 
-th, td {
-  padding: 10px;
-  border: 1px solid #ccc;
+.carousel-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.carousel-content th,
+.carousel-content td {
+  padding: 12px;
+  border: 1px solid #ddd;
   text-align: center;
+  font-size: 16px;
+}
+
+.carousel-content th {
+  background-color: #f1f1f1;
+  color: #2E4053;
+}
+
+.carousel-content tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.carousel-content tr:hover {
+  background-color: #f1f7fd;
 }
