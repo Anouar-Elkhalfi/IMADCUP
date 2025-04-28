@@ -33,7 +33,7 @@ body {
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Titre H1 centré et mis en valeur */
+/* Titre */
 h1 {
   font-size: 40px;
   margin-top: 30px;
@@ -43,7 +43,12 @@ h1 {
   text-align: center;
 }
 
-/* Carrousel section */
+h2 {
+  color: #34495E;
+  margin-bottom: 20px;
+}
+
+/* Carrousel */
 .carousel-section {
   background: #ffffff;
   margin: 40px auto;
@@ -83,14 +88,14 @@ h1 {
   transform: scale(1.05);
 }
 
-/* Titre de journée */
+/* Journee titre */
 .journee-title {
   font-size: 22px;
   font-weight: 600;
   color: #1c1c1c;
 }
 
-/* Tableaux */
+/* Table */
 .carousel-content table {
   width: 100%;
   border-collapse: collapse;
@@ -119,7 +124,7 @@ h1 {
   background-color: #e0e8f0;
 }
 
-/* Section Test centrée */
+/* Section Test */
 #test-section {
   margin-top: 60px;
   display: flex;
@@ -152,4 +157,66 @@ h1 {
   margin-top: 20px;
   font-size: 18px;
   font-weight: bold;
+}
+
+/* ------------- RESPONSIVE DESIGN -------------- */
+
+/* Petits écrans (mobiles) */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 28px;
+    margin: 20px 10px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .carousel-section {
+    margin: 20px 10px;
+    padding: 20px;
+  }
+
+  .carousel-navigation {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .prev-button,
+  .next-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .journee-title {
+    font-size: 20px;
+    margin-top: 10px;
+  }
+
+  #test-button {
+    width: 90%;
+    padding: 12px;
+    font-size: 18px;
+  }
+}
+
+/* Très petits écrans (téléphones < 480px) */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 24px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .carousel-content th, .carousel-content td {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  #test-result {
+    font-size: 16px;
+  }
 }
