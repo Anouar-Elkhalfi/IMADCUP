@@ -221,7 +221,7 @@ document.getElementById('test-button').addEventListener('click', () => {
     }
 
     if (!doublonErreur && !streakErreur && !journeesErreur) {
-      result.innerHTML += `<p style="color:green;font-weight:bold;">🎉 Championnat ${champ.prefixe} VALIDE O Dima AziiiiiiiiiiiiiiZ!</p>`;
+      result.innerHTML += `<p style="color:green;font-weight:bold;">🎉 Championnat ${champ.prefixe} VALIDE</p>`;
     } else {
       result.innerHTML += `<p style="color:red;font-weight:bold;">⚠️ Problèmes détectés pour ${champ.prefixe}.</p>`;
     }
