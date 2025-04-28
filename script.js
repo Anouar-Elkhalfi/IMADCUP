@@ -54,14 +54,12 @@ function equilibrerAllerRetour(journeesAller) {
     return hist.slice(-n);
   }
 
-  // Créer l'aller
   const allerCorrige = journeesAller.map(journee => ({
     type: 'Aller',
     journee: journee.journee,
     matchs: journee.matchs.map(match => ({ ...match }))
   }));
 
-  // Créer le retour inversé
   const retourCorrige = journeesAller.map(journee => ({
     type: 'Retour',
     journee: journee.journee,
@@ -81,12 +79,9 @@ function equilibrerAllerRetour(journeesAller) {
       const awayStreak = getLastNStatus(away, 2).every(status => status === 'E');
 
       if (homeStreak || awayStreak) {
-        // Inverser le match si nécessaire
-        match.home = away;
-        match.away = home;
+        [match.home, match.away] = [match.away, match.home];
       }
 
-      // Mise à jour historique
       historique[match.home] = [...(historique[match.home] || []), 'D'];
       historique[match.away] = [...(historique[match.away] || []), 'E'];
     });
@@ -155,6 +150,80 @@ championnats.forEach(champ => {
     if (currentIndex < calendrier.length - 1) {
       currentIndex++;
       afficherJournee(container, calendrier, currentIndex);
+    }
+  });
+});
+
+// === TEST AUTOMATIQUE au clic ===
+document.getElementById('test-button').addEventListener('click', () => {
+  const result = document.getElementById('test-result');
+  result.innerHTML = ''; // Nettoyer
+
+  [
+    { nb: 12, prefixe: 'Equipe' },
+    { nb: 14, prefixe: 'Team' },
+    { nb: 16, prefixe: 'E' }
+  ].forEach(champ => {
+    const calendrier = generateCalendrier(champ.nb, champ.prefixe);
+
+    let doublonErreur = false;
+    let streakErreur = false;
+    let journeesErreur = false;
+
+    const historique = {};
+    for (let i = 1; i <= champ.nb; i++) {
+      historique[`${champ.prefixe} ${i}`] = [];
+    }
+
+    calendrier.forEach(journee => {
+      const matchsDuJour = new Set();
+      journee.matchs.forEach(match => {
+        if (matchsDuJour.has(match.home) || matchsDuJour.has(match.away)) {
+          doublonErreur = true;
+        }
+        matchsDuJour.add(match.home);
+        matchsDuJour.add(match.away);
+
+        historique[match.home].push('D');
+        historique[match.away].push('E');
+      });
+    });
+
+    for (const equipe in historique) {
+      const parcours = historique[equipe].join('');
+      if (/DDD/.test(parcours) || /EEE/.test(parcours)) {
+        streakErreur = true;
+      }
+    }
+
+    if (calendrier.length !== 2 * (champ.nb - 1)) {
+      journeesErreur = true;
+    }
+
+    // Afficher résultats
+    result.innerHTML += `<h3>Résultats pour ${champ.prefixe} (${champ.nb} équipes)</h3>`;
+    if (!doublonErreur) {
+      result.innerHTML += `<p style="color:green;">✅ Aucune équipe ne joue deux fois par journée.</p>`;
+    } else {
+      result.innerHTML += `<p style="color:red;">❌ Des équipes jouent plusieurs fois le même jour.</p>`;
+    }
+
+    if (!streakErreur) {
+      result.innerHTML += `<p style="color:green;">✅ Pas de 3 matchs consécutifs domicile ou extérieur.</p>`;
+    } else {
+      result.innerHTML += `<p style="color:red;">❌ Il y a 3 matchs consécutifs à domicile ou extérieur.</p>`;
+    }
+
+    if (!journeesErreur) {
+      result.innerHTML += `<p style="color:green;">✅ Nombre de journées correct.</p>`;
+    } else {
+      result.innerHTML += `<p style="color:red;">❌ Mauvais nombre de journées.</p>`;
+    }
+
+    if (!doublonErreur && !streakErreur && !journeesErreur) {
+      result.innerHTML += `<p style="color:green;font-weight:bold;">🎉 Championnat ${champ.prefixe} VALIDE O Dima AziiiiiiiiiiiiiiZ!</p>`;
+    } else {
+      result.innerHTML += `<p style="color:red;font-weight:bold;">⚠️ Problèmes détectés pour ${champ.prefixe}.</p>`;
     }
   });
 });
