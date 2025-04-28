@@ -5,13 +5,13 @@ const championnats = [
   { id: 'carousel-16', nbEquipes: 16, prefixe: 'E' }
 ];
 
-// --- Générer les journées Round Robin équilibrées ---
-function generateRoundRobin(nbEquipes, prefixe) {
+// --- Générer le Round Robin brut ---
+function generateRoundRobinBrut(nbEquipes, prefixe) {
   const jours = [];
   const equipes = Array.from({ length: nbEquipes }, (_, i) => i + 1);
 
   if (nbEquipes % 2 !== 0) {
-    equipes.push(null); // Ajouter "bye" si nombre impair
+    equipes.push(null); // Ajouter "bye" si impair
   }
 
   const totalEquipes = equipes.length;
@@ -27,7 +27,6 @@ function generateRoundRobin(nbEquipes, prefixe) {
       const team2 = currentTeams[totalEquipes - 1 - i];
 
       if (team1 !== null && team2 !== null) {
-        // Alternance domicile/extérieur par journée
         if (journee % 2 === 0) {
           matchs.push({ home: `${prefixe} ${team1}`, away: `${prefixe} ${team2}` });
         } else {
@@ -37,21 +36,66 @@ function generateRoundRobin(nbEquipes, prefixe) {
     }
     jours.push({ type: 'Aller', journee: journee + 1, matchs: matchs });
 
-    // Rotation des équipes (sauf la première)
+    // Rotation des équipes sauf la première
     const fixed = currentTeams.shift();
     const moved = currentTeams.pop();
     currentTeams.unshift(fixed);
     currentTeams.splice(1, 0, moved);
   }
 
-  // Retour (inverser home/away)
-  const retour = jours.map(j => ({
+  return jours;
+}
+
+// --- Correction pour alterner domicile/extérieur ---
+function equilibrerMatchs(journees) {
+  const homeStreaks = {};
+  const awayStreaks = {};
+
+  journees.forEach(journee => {
+    journee.matchs.forEach(match => {
+      const { home, away } = match;
+
+      homeStreaks[home] = homeStreaks[home] || 0;
+      awayStreaks[away] = awayStreaks[away] || 0;
+
+      // Si une équipe a déjà 2 matchs à domicile, inverser
+      if (homeStreaks[home] >= 2) {
+        match.home = away;
+        match.away = home;
+        homeStreaks[away] = (homeStreaks[away] || 0) + 1;
+        awayStreaks[home] = (awayStreaks[home] || 0) + 1;
+      }
+      // Si une équipe a déjà 2 matchs à l'extérieur, inverser
+      else if (awayStreaks[away] >= 2) {
+        match.home = away;
+        match.away = home;
+        homeStreaks[away] = (homeStreaks[away] || 0) + 1;
+        awayStreaks[home] = (awayStreaks[home] || 0) + 1;
+      }
+      else {
+        homeStreaks[home]++;
+        awayStreaks[away]++;
+      }
+    });
+  });
+
+  return journees;
+}
+
+// --- Générer ALLER et RETOUR équilibrés ---
+function generateRoundRobin(nbEquipes, prefixe) {
+  const aller = equilibrerMatchs(generateRoundRobinBrut(nbEquipes, prefixe));
+
+  const retour = aller.map(j => ({
     type: 'Retour',
     journee: j.journee,
-    matchs: j.matchs.map(m => ({ home: m.away, away: m.home }))
+    matchs: j.matchs.map(m => ({
+      home: m.away,
+      away: m.home
+    }))
   }));
 
-  return [...jours, ...retour];
+  return [...aller, ...retour];
 }
 
 // --- Afficher une journée ---
