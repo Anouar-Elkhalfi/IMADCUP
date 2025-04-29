@@ -1,11 +1,12 @@
 // --- Configuration des championnats ---
 const championnats = [
+  { id: 'carousel-10', nbEquipes: 10, prefixe: 'Equipe' },
   { id: 'carousel-12', nbEquipes: 12, prefixe: 'Equipe' },
   { id: 'carousel-14', nbEquipes: 14, prefixe: 'Team' },
   { id: 'carousel-16', nbEquipes: 16, prefixe: 'E' }
 ];
 
-// --- Génération du Round Robin brut (sans correction) ---
+// --- Génération du Round Robin brut ---
 function generateRoundRobinBrut(nbEquipes, prefixe) {
   const jours = [];
   const equipes = Array.from({ length: nbEquipes }, (_, i) => i + 1);
@@ -45,7 +46,7 @@ function generateRoundRobinBrut(nbEquipes, prefixe) {
   return jours;
 }
 
-// --- Correction complète de l'aller + retour combinés ---
+// --- Correction aller-retour pour éviter 3 domiciles/extérieurs ---
 function equilibrerAllerRetour(journeesAller) {
   const historique = {};
 
@@ -90,11 +91,10 @@ function equilibrerAllerRetour(journeesAller) {
   return toutesJournees;
 }
 
-// --- Générer le calendrier final corrigé ---
+// --- Générer le calendrier complet corrigé ---
 function generateCalendrier(nbEquipes, prefixe) {
   const journeesAller = generateRoundRobinBrut(nbEquipes, prefixe);
-  const calendrier = equilibrerAllerRetour(journeesAller);
-  return calendrier;
+  return equilibrerAllerRetour(journeesAller);
 }
 
 // --- Afficher une journée ---
@@ -154,12 +154,13 @@ championnats.forEach(champ => {
   });
 });
 
-// === TEST AUTOMATIQUE au clic ===
+// === TEST AUTOMATIQUE ===
 document.getElementById('test-button').addEventListener('click', () => {
   const result = document.getElementById('test-result');
-  result.innerHTML = ''; // Nettoyer
+  result.innerHTML = '';
 
   [
+    { nb: 10, prefixe: 'Equipe' },
     { nb: 12, prefixe: 'Equipe' },
     { nb: 14, prefixe: 'Team' },
     { nb: 16, prefixe: 'E' }
@@ -205,23 +206,23 @@ document.getElementById('test-button').addEventListener('click', () => {
     if (!doublonErreur) {
       result.innerHTML += `<p style="color:green;">✅ Aucune équipe ne joue deux fois par journée.</p>`;
     } else {
-      result.innerHTML += `<p style="color:red;">❌ Des équipes jouent plusieurs fois le même jour.</p>`;
+      result.innerHTML += `<p style="color:red;">❌ Des équipes jouent plusieurs fois dans la même journée.</p>`;
     }
 
     if (!streakErreur) {
       result.innerHTML += `<p style="color:green;">✅ Pas de 3 matchs consécutifs domicile ou extérieur.</p>`;
     } else {
-      result.innerHTML += `<p style="color:red;">❌ Il y a 3 matchs consécutifs à domicile ou extérieur.</p>`;
+      result.innerHTML += `<p style="color:red;">❌ 3 matchs consécutifs domicile ou extérieur détectés.</p>`;
     }
 
     if (!journeesErreur) {
       result.innerHTML += `<p style="color:green;">✅ Nombre de journées correct.</p>`;
     } else {
-      result.innerHTML += `<p style="color:red;">❌ Mauvais nombre de journées.</p>`;
+      result.innerHTML += `<p style="color:red;">❌ Nombre de journées incorrect.</p>`;
     }
 
     if (!doublonErreur && !streakErreur && !journeesErreur) {
-      result.innerHTML += `<p style="color:green;font-weight:bold;">🎉 Championnat ${champ.prefixe} VALIDE</p>`;
+      result.innerHTML += `<p style="color:green;font-weight:bold;">🎉 Championnat ${champ.prefixe} valide sans erreur !</p>`;
     } else {
       result.innerHTML += `<p style="color:red;font-weight:bold;">⚠️ Problèmes détectés pour ${champ.prefixe}.</p>`;
     }
