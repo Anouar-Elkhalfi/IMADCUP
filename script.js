@@ -120,7 +120,11 @@ function afficherJournee(container, calendrier, index) {
   const tbody = document.createElement('tbody');
   data.matchs.forEach(match => {
     const row = document.createElement('tr');
-    row.innerHTML = `<td>${match.home}</td><td>${match.away}</td>`;
+    row.innerHTML = `
+  <td><i class="fas fa-house-chimney"></i> ${match.home}</td>
+  <td><i class="fas fa-location-dot"></i> ${match.away}</td>
+`;
+
     tbody.appendChild(row);
   });
 
@@ -234,4 +238,3 @@ document.getElementById("theme-button").addEventListener("click", () => {
   const isDark = document.body.classList.contains("dark");
   document.getElementById("theme-button").textContent = isDark ? "☀️" : "🌙";
 });
-

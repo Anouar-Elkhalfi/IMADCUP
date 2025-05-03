@@ -100,6 +100,11 @@ h2 {
   align-items: center;
   margin-bottom: 20px;
 }
+.carousel-content i {
+  margin-right: 6px;
+  color: #2c82f6;
+}
+
 
 .prev-button,
 .next-button {
@@ -324,4 +329,3 @@ h2 {
   from { text-shadow: 0 0 5px #fff, 0 0 10px #5DADE2; }
   to { text-shadow: 0 0 10px #5DADE2, 0 0 20px #85C1E9; }
 }
-
